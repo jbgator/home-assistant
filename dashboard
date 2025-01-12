@@ -1,0 +1,2580 @@
+kiosk_mode:
+  mobile_settings:
+    hide_header: true
+    hide_menubutton: true
+    ignore_entity_settings: false
+  entity_settings:
+    - entity:
+        input_boolean.kiosk_mode: 'on'
+      hide_header: true
+    - entity:
+        input_boolean.kiosk_mode: 'off'
+      hide_header: false
+views:
+  - subview: false
+    icon: mdi:account
+    badges: []
+    cards: []
+    type: sections
+    max_columns: 1
+    sections:
+      - type: grid
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: alarm-control-panel
+                entity: alarm_control_panel.home
+                content_info: state
+              - type: weather
+                entity: weather.home
+                show_conditions: true
+                show_temperature: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: lock.lock_front_door
+                    state_not: locked
+                chip:
+                  type: entity
+                  entity: lock.lock_front_door
+                  use_entity_picture: true
+                  icon_color: red
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.window_bedroom_contact
+                    state_not: 'off'
+                chip:
+                  type: entity
+                  entity: binary_sensor.window_bedroom_contact
+                  icon: mdi:window-open-variant
+                  icon_color: red
+                  use_entity_picture: false
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.garage
+                    state_not: 'off'
+                chip:
+                  type: entity
+                  entity: binary_sensor.garage
+                  use_entity_picture: true
+                  icon_color: red
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.window_living_room_left_contact
+                    state_not: 'off'
+                chip:
+                  type: entity
+                  entity: binary_sensor.window_living_room_left_contact
+                  icon_color: red
+                  icon: mdi:window-open-variant
+                  use_entity_picture: true
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.window_living_room_right_contact
+                    state_not: 'off'
+                chip:
+                  type: entity
+                  entity: binary_sensor.window_living_room_right_contact
+                  icon: mdi:window-open-variant
+                  icon_color: red
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.window_office_contact
+                    state_not: 'off'
+                chip:
+                  type: entity
+                  entity: binary_sensor.window_office_contact
+                  icon: mdi:window-open-variant
+                  icon_color: red
+              - type: conditional
+                conditions:
+                  - condition: state
+                    entity: binary_sensor.window_pantry_contact
+                    state_not: 'off'
+                chip:
+                  type: entity
+                  entity: binary_sensor.window_pantry_contact
+                  icon: mdi:window-open-variant
+                  icon_color: red
+              - type: conditional
+                conditions:
+                  - entity: sensor.devices_with_low_battery
+                    state_not: '0'
+                chip:
+                  type: template
+                  entity: sensor.devices_with_low_battery
+                  icon_color: red
+                  icon: mdi:battery-alert
+                  content: '{{ states(entity) }}'
+                  tap_action:
+                    action: fire-dom-event
+                    browser_mod:
+                      service: browser_mod.popup
+                      data:
+                        title: Slabé baterie
+                        content:
+                          type: custom:auto-entities
+                          filter:
+                            include:
+                              - attributes:
+                                  device_class: battery
+                                state: < 30
+                                options:
+                                  type: custom:mushroom-template-card
+                                  primary: '{{ states(entity) }}%'
+                                  secondary: >-
+                                    {{ state_attr(entity, 'friendly_name') |
+                                    title }}
+                                  icon: >
+                                    {% set battery_level = (states(entity) | int
+                                    / 10) | round(0) | int * 10 %} {% if
+                                    battery_level == 100 %}
+                                      mdi:battery
+                                    {% elif battery_level > 0 %}
+                                      mdi:battery-{{ battery_level }}
+                                    {% else %}
+                                      mdi:battery-outline
+                                    {% endif %}
+                                  icon_color: >-
+                                    {% set battery_level = states(entity) | int
+                                    %}
+
+                                    {% if battery_level > 90 %} 
+                                      green
+                                    {% elif battery_level > 60 %}
+                                      light-green
+                                    {% elif battery_level > 50 %}
+                                      lime
+                                    {% elif battery_level > 40 %}
+                                      yellow
+                                    {% elif battery_level > 30 %}
+                                      amber
+                                    {% elif battery_level > 20 %}
+                                      orange
+                                    {% elif battery_level > 10 %}
+                                      deep-orange
+                                    {% else %}
+                                      red
+                                    {% endif %} 
+                                  layout: horizontal
+                                  tap_action:
+                                    action: none
+                                  badge_icon: >-
+                                    {% set battery_level = states(entity) | int
+                                    %}
+
+                                    {% if battery_level < 10 %} 
+                                      mdi:exclamation-thick
+                                    {% endif %}
+                                  badge_color: red
+                                  card_mod:
+                                    style: |
+                                      ha-card {
+                                        padding: 4px 12px !important;
+                                      }
+                            exclude: null
+                          show_empty: false
+                          card:
+                            type: custom:layout-card
+                            cards: []
+                            layout_type: masonry
+                          sort:
+                            method: friendly_name```
+            alignment: center
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: Thermostat
+            icon: mdi:thermostat
+            card_layout: large
+          - type: custom:bubble-card
+            card_type: climate
+            entity: climate.thermostat
+            sub_button:
+              - name: HVAC modes menu
+                select_attribute: hvac_modes
+                state_background: false
+                show_arrow: false
+                show_name: false
+                show_last_changed: false
+                show_state: false
+              - entity: climate.thermostat
+                select_attribute: fan_modes
+                state_background: false
+                show_name: false
+                show_state: false
+                show_attribute: false
+                attribute: fan_mode
+                show_arrow: true
+            scrolling_effect: true
+            force_icon: false
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_attribute: true
+            attribute: current_temperature
+            hide_target_temp_low: false
+            hide_target_temp_high: false
+            state_color: false
+            card_layout: large
+            styles: |-
+              * {
+              --bubble-border-radius: 10px
+              }
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: Vacuum
+            icon: mdi:robot-vacuum
+            card_layout: large
+          - type: custom:bubble-card
+            card_type: button
+            entity: vacuum.robojon
+            card_layout: large
+            button_action:
+              tap_action:
+                action: more-info
+            show_state: true
+            show_attribute: false
+            sub_button:
+              - entity: vacuum.robojon
+                icon: mdi:broom
+                tap_action:
+                  action: navigate
+                  navigation_path: '#vacuum'
+            styles: |-
+              * {
+              --bubble-border-radius: 10px
+              }
+          - type: custom:bubble-card
+            card_type: button
+            entity: sensor.vacuum
+            card_layout: large
+            button_action:
+              tap_action:
+                action: more-info
+            show_state: true
+            show_attribute: false
+            sub_button:
+              - icon: mdi:broom
+                tap_action:
+                  action: navigate
+                  navigation_path: '#vacuum2'
+            styles: |-
+              * {
+              --bubble-border-radius: 10px
+              }
+      - type: grid
+        cards:
+          - type: custom:bubble-card
+            card_type: separator
+            name: Controls
+            icon: mdi:toggle-switch
+            card_layout: large
+          - type: custom:vertical-stack-in-card
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Living Room
+                sub_button:
+                  - show_icon: true
+                    show_state: false
+                    state_background: false
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#livingroom'
+                    icon: mdi:menu
+                styles: |
+                  * {
+                   .bubble-line {
+                          flex-grow: 1;
+                          margin-right: 0px;
+                          }
+              - type: custom:bubble-card
+                card_type: separator
+                icon: mdi:sofa
+                card_layout: normal
+                styles: |
+                  * { 
+                  --bubble-line-background-color: none
+                  }
+                    .bubble-icon {
+                      color: orange !important;
+                      --mdc-icon-size: 75px !important;
+                      margin: 0 5px 0 5px;
+                    }
+                     .bubble-sub-button-icon {
+                      --mdc-icon-size: 30px !important;
+                    }
+                     .bubble-sub-button {
+                      height: 30px !important;
+                      min-width: 2px !important;
+                      border-radius: 10px;
+                    }
+                   .bubble-line {
+                          flex-grow: 0;
+                          margin-right: 0px;
+                          }
+                sub_button:
+                  - entity: light.living_room
+                    show_background: true
+                    show_name: false
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                  - entity: light.living_room_tv_lightstrip
+                    icon: mdi:television
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: custom:vertical-stack-in-card
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Kitchen
+                sub_button:
+                  - show_icon: true
+                    show_state: true
+                    state_background: false
+                    icon: mdi:menu
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#kitchen'
+                styles: |
+                  * {
+                   .bubble-line {
+                          flex-grow: 1;
+                          margin-right: 0px;
+                          }
+              - type: custom:bubble-card
+                card_type: separator
+                icon: mdi:fridge
+                card_layout: normal
+                styles: |
+                  * { 
+                  --bubble-line-background-color: none
+                  }
+                    .bubble-icon {
+                      color: lightblue !important;
+                      --mdc-icon-size: 75px !important;
+                      margin: 0 5px 0 5px;
+                    }
+                     .bubble-sub-button-icon {
+                      --mdc-icon-size: 30px !important;
+                    }
+                     .bubble-sub-button {
+                      height: 30px !important;
+                      min-width: 2px !important;
+                      border-radius: 10px;
+                    }
+                   .bubble-line {
+                          flex-grow: 0;
+                          margin-right: 0px;
+                          }
+                sub_button:
+                  - entity: light.kitchen
+                    show_background: true
+                    show_name: false
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    icon: mdi:lightbulb-group
+                  - entity: light.kitchen_island
+                    icon: mdi:ceiling-light-multiple
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: custom:vertical-stack-in-card
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Bedroom
+                sub_button:
+                  - show_icon: true
+                    show_state: true
+                    state_background: false
+                    icon: mdi:menu
+                    show_last_changed: true
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#bedroom'
+                styles: |
+                  * {
+                   .bubble-line {
+                          flex-grow: 1;
+                          margin-right: 0px;
+                          }
+              - type: custom:bubble-card
+                card_type: separator
+                icon: mdi:bed
+                card_layout: normal
+                styles: |
+                  * { 
+                  --bubble-line-background-color: none
+                  }
+                    .bubble-icon {
+                      color: green !important;
+                      --mdc-icon-size: 75px !important;
+                      margin: 0 5px 0 5px;
+                    }
+                     .bubble-sub-button-icon {
+                      --mdc-icon-size: 30px !important;
+                    }
+                     .bubble-sub-button {
+                      height: 30px !important;
+                      min-width: 2px !important;
+                      border-radius: 10px;
+                    }
+                   .bubble-line {
+                          flex-grow: 0;
+                          margin-right: 0px;
+                          }
+                sub_button:
+                  - entity: light.bedroom
+                    show_background: true
+                    show_name: false
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    icon: mdi:lightbulb-group
+                  - entity: light.master_bedroom_closet
+                    icon: mdi:hanger
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: custom:vertical-stack-in-card
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Bathroom
+                sub_button:
+                  - show_icon: true
+                    show_state: false
+                    state_background: false
+                    icon: mdi:menu
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#bathroom'
+                styles: |
+                  * {
+                   .bubble-line {
+                          flex-grow: 1;
+                          margin-right: 0px;
+                          }
+              - type: custom:bubble-card
+                card_type: separator
+                icon: mdi:shower
+                card_layout: normal
+                styles: |-
+                  * { 
+                  --bubble-line-background-color: none
+                  }
+                    .bubble-icon {
+                      color: purple !important;
+                      --mdc-icon-size: 75px !important;
+                      margin: 0 5px 0 5px;
+                    }
+                     .bubble-sub-button-icon {
+                      --mdc-icon-size: 30px !important;
+                    }
+                     .bubble-sub-button {
+                      height: 30px !important;
+                      min-width: 2px !important;
+                      border-radius: 10px;
+                    }
+                   .bubble-line {
+                          flex-grow: 0;
+                          margin-right: 0px;
+                          }
+                sub_button:
+                  - entity: light.bathroom_upstairs
+                    show_background: true
+                    show_name: false
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    icon: mdi:lightbulb-group
+                  - entity: light.light_strip_bathroom
+                    icon: mdi:shower-head
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: custom:vertical-stack-in-card
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Office
+                sub_button:
+                  - show_icon: true
+                    show_state: false
+                    state_background: false
+                    icon: mdi:menu
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#office'
+                styles: |
+                  * {
+                   .bubble-line {
+                          flex-grow: 1;
+                          margin-right: 0px;
+                          }
+              - type: custom:bubble-card
+                card_type: separator
+                icon: fas:computer
+                card_layout: normal
+                styles: |-
+                  * { 
+                  --bubble-line-background-color: none
+                  }
+                    .bubble-icon {
+                      color: darkred !important;
+                      --mdc-icon-size: 75px !important;
+                      margin: 0 5px 0 5px;
+                    }
+                     .bubble-sub-button-icon {
+                      --mdc-icon-size: 30px !important;
+                    }
+                     .bubble-sub-button {
+                      height: 30px !important;
+                      min-width: 2px !important;
+                      border-radius: 10px;
+                    }
+                   .bubble-line {
+                          flex-grow: 0;
+                          margin-right: 0px;
+                          }
+                sub_button:
+                  - entity: light.office_light_fixture
+                    show_background: true
+                    show_name: false
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    icon: mdi:lightbulb-group
+                  - entity: light.foyer_light_fixture
+                    icon: mdi:ceiling-light
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: custom:vertical-stack-in-card
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Garage
+                sub_button:
+                  - show_icon: true
+                    show_state: false
+                    state_background: false
+                    icon: mdi:menu
+                    show_last_changed: false
+                    name: ''
+                    show_name: false
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#garage'
+                styles: |
+                  * {
+                   .bubble-line {
+                          flex-grow: 1;
+                          margin-right: 0px;
+                          }
+              - type: custom:bubble-card
+                card_type: separator
+                icon: mdi:car-pickup
+                card_layout: normal
+                styles: |-
+                  * { 
+                  --bubble-line-background-color: none
+                  }
+                    .bubble-icon {
+                      color: grey !important;
+                      --mdc-icon-size: 75px !important;
+                      margin: 0 5px 0 5px;
+                    }
+                     .bubble-sub-button-icon {
+                      --mdc-icon-size: 30px !important;
+                    }
+                     .bubble-sub-button {
+                      height: 30px !important;
+                      min-width: 2px !important;
+                      border-radius: 10px;
+                    }
+                   .bubble-line {
+                          flex-grow: 0;
+                          margin-right: 0px;
+                          }
+                sub_button:
+                  - entity: cover.garage
+                    show_background: true
+                    show_name: false
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    icon: ''
+                    show_state: false
+                  - entity: climate.r1t_cabin_climate
+                    icon: mdi:air-conditioner
+            grid_options:
+              columns: 6
+              rows: auto
+      - type: grid
+        cards:
+          - type: custom:mod-card
+            card_mod:
+              style: |
+                @media (min-width:180px) {
+                  ha-card {
+                    background: #222222;
+                    border-radius: 100px;
+                    position: fixed;
+                    bottom: 10px;
+                    left: 10px;
+                    z-index: 1;
+                    width: calc(100% - 20px);
+                    padding: 10px;
+                  }
+                }
+                @media (min-width:800px) {
+                  ha-card {
+                    width: calc(60% - 30px);
+                    left: calc(30% + 43px);
+                  }
+                }
+            card:
+              type: grid
+              square: false
+              columns: 3
+              cards:
+                - type: custom:button-card
+                  icon: mdi:lightbulb
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#lights'
+                  styles:
+                    icon:
+                      - width: 24px
+                      - color: white
+                    img_cell:
+                      - width: 50px
+                      - height: 50px
+                    card:
+                      - background: none
+                      - padding: 0
+                - type: custom:button-card
+                  icon: mdi:remote-tv
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#remote'
+                  styles:
+                    icon:
+                      - width: 24px
+                      - color: white
+                    img_cell:
+                      - width: 50px
+                      - height: 50px
+                    card:
+                      - background: none
+                      - padding: 0
+                - type: custom:button-card
+                  icon: mdi:shield
+                  tap_action:
+                    action: navigate
+                    navigation_path: '#security'
+                  styles:
+                    icon:
+                      - width: 24px
+                      - color: white
+                    img_cell:
+                      - width: 50px
+                      - height: 50px
+                    card:
+                      - background: none
+                      - padding: 0
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#livingroom'
+                name: Living Room
+                show_icon: true
+                force_icon: false
+                show_state: false
+                show_last_changed: false
+                show_attribute: false
+                icon: mdi:sofa
+                sub_button:
+                  - entity: sensor.smartsensor_temperature
+                    show_state: true
+                    state_background: false
+                styles: |-
+                  .bubble-button-card-container {
+                    background: darkorange !important;
+                  }
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: fapro:bulb
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.living_room
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                name: Room
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.living_room_oh
+                    name: Overhead Lights
+                    icon: mdi:light-recessed
+                    columns: 2
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    slider_live_update: false
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.living_room_lamp
+                    name: Lamp
+                    icon: mdi:floor-lamp
+                    force_icon: false
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    columns: 2
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.living_room_mushroom_lamp
+                    name: Mushroom Lamp
+                    icon: mdi:mushroom
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    show_icon: true
+                    show_state: false
+                    slider_live_update: true
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.living_room_tv_lightstrip
+                    name: TV Lightstrip
+                    icon: mdi:led-strip-variant
+              - type: custom:bubble-card
+                card_type: separator
+                name: Media
+                icon: mdi:television
+              - type: custom:bubble-card
+                card_type: media-player
+                entity: media_player.shield_android_tv
+                name: TV
+                icon: mdi:television
+              - type: custom:bubble-card
+                card_type: media-player
+                entity: media_player.denon_avr_s720w
+                name: Receiver
+                icon: ''
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#kitchen'
+                name: Kitchen
+                icon: mdi:fridge
+                sub_button:
+                  - entity: sensor.smart_sensor_kitchen_temperature
+                    show_state: true
+                    state_background: false
+                card_layout: normal
+                styles: |-
+                  .bubble-button-card-container {
+                    background: lightblue !important;
+                  }
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: fapro:bulb
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: light.kitchen
+                name: Room
+                icon: mdi:lightbulb-group
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.kitchen_overhead
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    name: Overhead Lights
+                    icon: mdi:light-recessed
+                    slider_live_update: true
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.kitchen_island
+                    name: Island
+                    icon: mdi:ceiling-light-multiple
+                    slider_live_update: true
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.laundry_room_lf
+                    name: Pantry
+                    icon: mdi:washing-machine
+                  - type: custom:bubble-card
+                    card_type: empty-column
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#vacuum'
+                icon: mdi:robot-vacuum
+                name: Vacuum
+                button_type: name
+                sub_button:
+                  - entity: sensor.robojon_battery
+                    show_state: true
+                    state_background: false
+              - type: custom:xiaomi-vacuum-map-card
+                entity: vacuum.robojon
+                vacuum_platform: humbertogontijo/homeassistant-roborock
+                map_source:
+                  camera: camera.robojon_map
+                calibration_source:
+                  camera: true
+                map_modes:
+                  - template: vacuum_clean_zone
+                  - template: vacuum_goto
+                  - template: vacuum_clean_segment
+                    predefined_selections:
+                      - id: '1'
+                        icon:
+                          name: mdi:toilet
+                          x: 32225
+                          'y': 24925
+                        label:
+                          text: Bathroom
+                          x: 32225
+                          'y': 24925
+                          offset_y: 35
+                        outline:
+                          - - 30700
+                            - 23550
+                          - - 33750
+                            - 23550
+                          - - 33750
+                            - 26300
+                          - - 30700
+                            - 26300
+                      - id: '2'
+                        icon:
+                          name: mdi:fridge
+                          x: 27900
+                          'y': 24950
+                        label:
+                          text: Kitchen
+                          x: 27900
+                          'y': 24950
+                          offset_y: 35
+                        outline:
+                          - - 25350
+                            - 23650
+                          - - 30450
+                            - 23650
+                          - - 30450
+                            - 26250
+                          - - 25350
+                            - 26250
+                      - id: '4'
+                        icon:
+                          name: mdi:sofa
+                          x: 28975
+                          'y': 22100
+                        label:
+                          text: Living Room
+                          x: 28975
+                          'y': 22100
+                          offset_y: 35
+                        outline:
+                          - - 24700
+                            - 20000
+                          - - 33250
+                            - 20000
+                          - - 33250
+                            - 24200
+                          - - 24700
+                            - 24200
+                      - id: '5'
+                        icon:
+                          name: mdi:bed
+                          x: 34225
+                          'y': 23150
+                        label:
+                          text: Bedroom
+                          x: 34225
+                          'y': 23150
+                          offset_y: 35
+                        outline:
+                          - - 32500
+                            - 20000
+                          - - 35950
+                            - 20000
+                          - - 35950
+                            - 26300
+                          - - 32500
+                            - 26300
+                map_locked: true
+                two_finger_pan: true
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#security'
+                button_type: name
+                name: Security
+                icon: mdi:shield
+              - type: custom:bubble-card
+                card_type: separator
+                name: Alarm
+                icon: mdi:shield-lock-outline
+              - type: custom:mushroom-alarm-control-panel-card
+                entity: alarm_control_panel.home
+                states:
+                  - armed_home
+                  - armed_away
+                  - armed_night
+              - type: custom:bubble-card
+                card_type: separator
+                name: Locks
+                icon: mdi:lock
+              - type: custom:mushroom-lock-card
+                entity: lock.lock_front_door
+                name: Front Door
+              - type: custom:bubble-card
+                card_type: separator
+                name: Camera
+                icon: mdi:cctv
+              - show_state: true
+                show_name: false
+                camera_view: auto
+                type: picture-entity
+                image: https://demo.home-assistant.io/stub_config/bedroom.png
+                camera_image: camera.frontcam
+                entity: camera.frontcam
+              - type: custom:bubble-card
+                card_type: separator
+                name: Doors / Windows
+                icon: mdi:door
+              - type: horizontal-stack
+                cards:
+                  - type: entities
+                    entities:
+                      - entity: binary_sensor.door_front_contact
+                        name: Front
+                      - entity: binary_sensor.door_garage_contact
+                        name: Garage
+                    title: Foyer
+                    state_color: true
+                  - type: entities
+                    entities:
+                      - entity: binary_sensor.garage
+                    title: Garage
+              - type: horizontal-stack
+                cards:
+                  - type: entities
+                    entities:
+                      - entity: binary_sensor.window_bedroom_contact
+                        icon: mdi:window-closed-variant
+                        name: Window
+                    title: Bedroom
+                    show_header_toggle: false
+                    state_color: true
+                  - type: entities
+                    entities:
+                      - entity: binary_sensor.window_pantry_contact
+                        icon: mdi:window-closed-variant
+                        name: Pantry
+                    title: Kitchen
+                    show_header_toggle: false
+              - type: horizontal-stack
+                cards:
+                  - type: entities
+                    entities:
+                      - entity: binary_sensor.window_bedroom_contact
+                        icon: mdi:window-closed-variant
+                        name: Window
+                    title: Bedroom
+                    show_header_toggle: false
+                    state_color: true
+                  - type: entities
+                    entities:
+                      - entity: binary_sensor.window_office_contact
+                        name: Window
+                        icon: mdi:window-closed-variant
+                    title: Office
+                    state_color: true
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#garage'
+                name: Garage
+                show_header: true
+                icon: mdi:garage
+                sub_button:
+                  - entity: sensor.r1t_cabin_temperature
+                    show_state: true
+                    state_background: false
+                styles: |-
+                  .bubble-button-card-container {
+                    background: grey !important;
+                  }
+              - type: custom:bubble-card
+                card_type: separator
+                name: Garage Door
+                icon: mdi:garage
+              - type: custom:bubble-card
+                card_type: cover
+                entity: cover.garage
+                show_name: false
+                show_icon: false
+              - type: custom:bubble-card
+                card_type: separator
+                name: Rivian
+                icon: mdi:car-pickup
+              - type: horizontal-stack
+                cards:
+                  - type: gauge
+                    entity: sensor.r1t_odometer
+                    max: 30100
+                    layout_options:
+                      grid_columns: 2
+                      grid_rows: 2
+                    name: Odometer
+                  - type: tile
+                    entity: update.r1t_software
+                    name: Software
+                    vertical: true
+                    show_entity_picture: true
+                    state_content:
+                      - state
+                      - installed_version
+                    layout_options:
+                      grid_columns: 2
+                      grid_rows: 2
+              - type: horizontal-stack
+                cards:
+                  - type: gauge
+                    entity: sensor.r1t_battery_state_of_charge
+                    layout_options:
+                      grid_columns: 2
+                      grid_rows: 2
+                    name: State of Charge
+                  - graph: line
+                    type: sensor
+                    entity: sensor.r1t_estimated_vehicle_range
+                    detail: 2
+                    hours_to_show: 12
+                    name: Estimated Range
+              - type: picture-elements
+                elements:
+                  - type: state-label
+                    prefix: 'Cabin Temp: '
+                    entity: sensor.r1t_cabin_temperature
+                    style:
+                      top: 35%
+                      left: 50%
+                image_entity: image.r1t_front_dark
+              - type: horizontal-stack
+                cards:
+                  - graph: line
+                    type: sensor
+                    entity: sensor.r1t_cabin_temperature
+                    detail: 2
+                    name: Cabin Temp
+                  - graph: line
+                    type: sensor
+                    entity: sensor.r1t_altitude
+                    detail: 2
+                    name: Altitude
+                    hours_to_show: 24
+              - type: horizontal-stack
+                cards:
+                  - type: tile
+                    entity: binary_sensor.r1t_wiper_fluid_level
+                    name: Wiper Fluid
+                    show_entity_picture: false
+                  - type: tile
+                    entity: sensor.r1t_12v_battery_health
+                    name: 12v Battery
+                    hide_state: false
+                    show_entity_picture: false
+              - type: picture-elements
+                elements:
+                  - type: state-badge
+                    entity: sensor.r1t_power_state
+                    title: Power State
+                    style:
+                      top: 50%
+                      left: 51%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_front_trunk_lock
+                    style:
+                      top: 9%
+                      left: 50.8%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_charge_port
+                    style:
+                      top: 9%
+                      left: 12%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_door_front_left_lock
+                    style:
+                      top: 41%
+                      left: 12%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_door_front_right_lock
+                    style:
+                      top: 41%
+                      left: 89.5%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_door_rear_left_lock
+                    style:
+                      top: 57%
+                      left: 12%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_door_rear_right_lock
+                    style:
+                      top: 57%
+                      left: 89.5%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_gear_tunnel_left_lock
+                    style:
+                      top: 65%
+                      left: 12%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_gear_tunnel_right_lock
+                    style:
+                      top: 65%
+                      left: 89.5%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_tonneau_lock
+                    style:
+                      top: 68%
+                      left: 51%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_tailgate_lock
+                    style:
+                      top: 91%
+                      left: 51%
+                  - type: state-icon
+                    entity: binary_sensor.r1t_gear_guard
+                    style:
+                      top: 86%
+                      left: 28%
+                  - type: state-icon
+                    entity: sensor.r1t_tire_pressure_front_left
+                    style:
+                      top: 13%
+                      left: 9%
+                  - type: state-label
+                    entity: sensor.r1t_tire_pressure_front_left
+                    style:
+                      top: 15%
+                      left: 9%
+                  - type: state-label
+                    entity: sensor.r1t_tire_pressure_front_left_status
+                    style:
+                      top: 17%
+                      left: 9%
+                  - type: state-icon
+                    entity: sensor.r1t_tire_pressure_front_right
+                    style:
+                      top: 13%
+                      left: 93%
+                  - type: state-label
+                    entity: sensor.r1t_tire_pressure_front_right
+                    style:
+                      top: 15%
+                      left: 93%
+                  - type: state-label
+                    entity: sensor.r1t_tire_pressure_front_right_status
+                    style:
+                      top: 17%
+                      left: 93%
+                  - type: state-icon
+                    entity: sensor.r1t_tire_pressure_rear_left
+                    style:
+                      top: 73%
+                      left: 9%
+                  - type: state-label
+                    entity: sensor.r1t_tire_pressure_rear_left
+                    style:
+                      top: 75%
+                      left: 9%
+                  - type: state-label
+                    entity: sensor.r1t_tire_pressure_rear_left_status
+                    style:
+                      top: 77%
+                      left: 9%
+                  - type: state-icon
+                    entity: sensor.r1t_tire_pressure_rear_right
+                    style:
+                      top: 73%
+                      left: 92%
+                  - type: state-label
+                    entity: sensor.r1t_tire_pressure_rear_right
+                    style:
+                      top: 75%
+                      left: 92%
+                  - type: state-label
+                    entity: sensor.r1t_tire_pressure_rear_right_status
+                    style:
+                      top: 77%
+                      left: 92%
+                image_entity: image.r1t_overhead_dark
+              - type: picture-elements
+                elements:
+                  - type: state-label
+                    prefix: 'Status: '
+                    entity: binary_sensor.r1t_charging_status
+                    style:
+                      top: 5%
+                      left: 75px
+                  - type: state-icon
+                    entity: binary_sensor.r1t_charge_port
+                    style:
+                      top: 39.6%
+                      left: 35.4%
+                  - type: conditional
+                    conditions:
+                      - entity: binary_sensor.r1t_charging_status
+                        state: Charging
+                    elements:
+                      - type: state-label
+                        prefix: 'Charging Rate: '
+                        entity: sensor.r1t_charging_rate
+                        style:
+                          top: 10%
+                          left: 90px
+                      - type': state-label
+                        prefix: 'Charging Port: '
+                        entity: binary_sensor.r1t_charge_port
+                        style:
+                          top: 10%
+                          left: 90px
+                      - type: state-label
+                        prefix: 'Charging Speed: '
+                        entity: sensor.r1t_charging_speed
+                        style:
+                          top: 15%
+                          left: 96px
+                      - type: state-label
+                        prefix: 'Energy Delivered: '
+                        entity: sensor.r1t_charging_energy_delivered
+                        style:
+                          top: 20%
+                          left: 108px
+                      - type: state-label
+                        prefix: 'Time Remaining: '
+                        entity: sensor.r1t_charging_time_remaining
+                        style:
+                          top: 25%
+                          left: 100px
+                image_entity: image.r1t_side_charging_dark
+              - square: false
+                type: grid
+                cards:
+                  - type: tile
+                    entity: sensor.r1t_battery_state_of_charge_limit
+                    name: Charge Limit
+                  - type: tile
+                    entity: sensor.r1t_charging_range_added
+                    name: Range Added
+                    visibility:
+                      - condition: state
+                        entity: binary_sensor.r1t_charging_status
+                        state: 'on'
+                  - graph: line
+                    type: sensor
+                    detail: 2
+                    entity: sensor.r1t_charging_rate
+                    name: Charge Rate
+                    visibility:
+                      - condition: state
+                        entity: binary_sensor.r1t_charging_status
+                        state: 'on'
+                  - graph: line
+                    type: sensor
+                    entity: sensor.r1t_charging_speed
+                    detail: 2
+                    name: Charge Speed
+                    visibility:
+                      - condition: state
+                        entity: binary_sensor.r1t_charging_status
+                        state: 'on'
+                  - type: tile
+                    entity: sensor.r1t_charging_start_time
+                    visibility:
+                      - condition: state
+                        entity: binary_sensor.r1t_charging_status
+                        state: 'on'
+                    name: Charge Start Time
+                  - type: tile
+                    entity: sensor.r1t_charging_cost
+                    name: Charging Cost
+                    visibility:
+                      - condition: state
+                        entity: binary_sensor.r1t_charging_status
+                        state: 'on'
+                columns: 2
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#bedroom'
+                button_type: name
+                name: Bedroom
+                icon: mdi:bed
+                sub_button:
+                  - entity: sensor.smartsensor_temperature
+                    state_background: false
+                    show_state: true
+                bg_color: ''
+                hide_backdrop: true
+                backdrop_blur: '25'
+                styles: |-
+                  .bubble-button-card-container {
+                    background: green !important;
+                  }
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: fapro:bulb
+              - type: custom:bubble-card
+                card_type: button
+                entity: light.bedroom
+                name: Room
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                styles: |-
+                  * {
+                  --bubble-pop-up-background-color: green
+                  }
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.master_bedroom_nightstand_1
+                    name: Nightstand (L)
+                    icon: mdi:lamp
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.master_bedroom_nightstand_2
+                    name: Nightstand (R)
+                    icon: mdi:lamp
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.master_bedroom_lamp
+                    name: Lamp
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    icon: mdi:floor-lamp
+                  - type: custom:bubble-card
+                    card_type: button
+                    entity: light.master_bedroom_closet
+                    name: Closet
+                    icon: mdi:hanger
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    entity: light.light_strip_bedroom
+                    name: Bed
+                    icon: mdi:bed-double
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                  - type: custom:bubble-card
+                    card_type: empty-column
+              - type: custom:bubble-card
+                card_type: separator
+                name: Fan
+                icon: mdi:ceiling-fan
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#bathroom'
+                button_type: name
+                name: Bathroom
+                icon: mdi:shower
+                sub_button:
+                  - entity: sensor.motion_sensor_bathroom_temperature
+                    state_background: false
+                    show_state: true
+                bg_color: ''
+                hide_backdrop: true
+                backdrop_blur: '25'
+                styles: |-
+                  .bubble-button-card-container {
+                    background: purple !important;
+                  }
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: fapro:bulb
+              - type: custom:bubble-card
+                card_type: button
+                entity: light.bathroom_upstairs
+                name: Room
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                styles: |-
+                  * {
+                  --bubble-pop-up-background-color: green
+                  }
+                icon: mdi:lightbulb-group
+                button_type: slider
+                slider_live_update: true
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.light_strip_bedroom
+                    name: Shower
+                    icon: mdi:shower-head
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    slider_live_update: true
+                  - type: custom:bubble-card
+                    card_type: empty-column
+                    button_type: slider
+                    entity: light.master_bedroom_nightstand_2
+                    name: Nightstand (R)
+                    icon: mdi:lamp
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+              - type: custom:bubble-card
+                card_type: separator
+                name: Devices
+                icon: mdi:devices
+              - type: custom:bubble-card
+                card_type: button
+                button_type: state
+                entity: switch.plug_bidet
+                name: Bidet
+                icon: mdi:toilet
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#office'
+                button_type: name
+                name: Office
+                icon: fas:computer
+                sub_button:
+                  - entity: sensor.smart_sensor_office_temperature
+                    state_background: false
+                    show_state: true
+                bg_color: ''
+                hide_backdrop: true
+                backdrop_blur: '25'
+                styles: |-
+                  .bubble-button-card-container {
+                    background: darkred !important;
+                  }
+              - type: custom:bubble-card
+                card_type: separator
+                name: Lights
+                icon: fapro:bulb
+              - type: custom:bubble-card
+                card_type: button
+                entity: light.office_light_fixture
+                name: Office
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                styles: |-
+                  * {
+                  --bubble-pop-up-background-color: green
+                  }
+                icon: mdi:lightbulb-group
+                button_type: slider
+                slider_live_update: true
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.foyer_light_fixture
+                    name: Foyer
+                    icon: mdi:door
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    slider_live_update: true
+                  - type: custom:bubble-card
+                    card_type: button
+                    entity: switch.light_switch_outside
+                    name: Outside
+                    icon: mdi:coach-lamp
+              - type: custom:bubble-card
+                card_type: separator
+                name: Devices
+                icon: mdi:devices
+              - type: custom:bubble-card
+                card_type: button
+                button_type: state
+                entity: sensor.plug_jonpc_energy
+                name: JonPC
+                icon: fas:computer
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#lights'
+                button_type: name
+                name: Lights
+                icon: mdi:home-lightbulb
+                styles: |-
+                  .bubble-button-card-container {
+                    background: orange !important;
+                  }
+              - type: custom:bubble-card
+                card_type: separator
+                name: Living Room
+                icon: mdi:sofa
+                styles: |-
+                  * {
+                  --bubble-line-background-color: darkorange;
+                  }
+                  .bubble-icon {
+                    color: darkorange;
+                  }
+              - type: vertical-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.living_room
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    name: Room
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.living_room_oh
+                        name: Overhead Lights
+                        icon: mdi:light-recessed
+                        columns: 2
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                        slider_live_update: false
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.living_room_lamp
+                        name: Lamp
+                        icon: mdi:floor-lamp
+                        force_icon: false
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                        columns: 2
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.living_room_mushroom_lamp
+                        name: Mushroom Lamp
+                        icon: mdi:mushroom
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                        show_icon: true
+                        show_state: false
+                        slider_live_update: true
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.living_room_tv_lightstrip
+                        name: TV Lightstrip
+                        icon: mdi:led-strip-variant
+              - type: custom:bubble-card
+                card_type: separator
+                name: Kitchen
+                icon: mdi:fridge
+                styles: |-
+                  * {
+                  --bubble-line-background-color: lightblue;
+                  }
+                  .bubble-icon {
+                    color: lightblue;
+                  }
+              - type: vertical-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.kitchen
+                    name: Room
+                    icon: mdi:lightbulb-group
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.kitchen_overhead
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                        name: Overhead Lights
+                        icon: mdi:light-recessed
+                        slider_live_update: true
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.kitchen_island
+                        name: Island
+                        icon: mdi:ceiling-light-multiple
+                        slider_live_update: true
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.laundry_room_lf
+                        name: Pantry
+                        icon: mdi:washing-machine
+                      - type: custom:bubble-card
+                        card_type: empty-column
+              - type: custom:bubble-card
+                card_type: separator
+                name: Bedroom
+                icon: mdi:bed
+                styles: |-
+                  * {
+                  --bubble-line-background-color: green;
+                  }
+                  .bubble-icon {
+                    color: green;
+                  }
+              - type: vertical-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    entity: light.bedroom
+                    name: Room
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    styles: |-
+                      * {
+                      --bubble-pop-up-background-color: green
+                      }
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.master_bedroom_nightstand_1
+                        name: Nightstand (L)
+                        icon: mdi:lamp
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.master_bedroom_nightstand_2
+                        name: Nightstand (R)
+                        icon: mdi:lamp
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.master_bedroom_lamp
+                        name: Lamp
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                        icon: mdi:floor-lamp
+                      - type: custom:bubble-card
+                        card_type: button
+                        entity: light.master_bedroom_closet
+                        name: Closet
+                        icon: mdi:hanger
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:bubble-card
+                        card_type: button
+                        entity: light.light_strip_bedroom
+                        name: Bed
+                        icon: mdi:bed-double
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                      - type: custom:bubble-card
+                        card_type: empty-column
+              - type: custom:bubble-card
+                card_type: separator
+                name: Bathroom
+                icon: mdi:shower
+                styles: |-
+                  * {
+                  --bubble-line-background-color: purple;
+                  }
+                  .bubble-icon {
+                    color: purple;
+                  }
+              - type: vertical-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    entity: light.bathroom_upstairs
+                    name: Room
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    styles: |-
+                      * {
+                      --bubble-pop-up-background-color: green
+                      }
+                    icon: mdi:lightbulb-group
+                    button_type: slider
+                    slider_live_update: true
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:bubble-card
+                        card_type: button
+                        button_type: slider
+                        entity: light.light_strip_bedroom
+                        name: Shower
+                        icon: mdi:shower-head
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+                        slider_live_update: true
+                      - type: custom:bubble-card
+                        card_type: empty-column
+                        button_type: slider
+                        entity: light.master_bedroom_nightstand_2
+                        name: Nightstand (R)
+                        icon: mdi:lamp
+                        tap_action:
+                          action: toggle
+                        hold_action:
+                          action: more-info
+              - type: custom:bubble-card
+                card_type: separator
+                name: Office
+                icon: fas:computer
+                styles: |-
+                  * {
+                  --bubble-line-background-color: darkred;
+                  }
+                  .bubble-icon {
+                    color: darkred;
+                  }
+              - type: vertical-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    entity: light.office_light_fixture
+                    name: Room
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    styles: |-
+                      * {
+                      --bubble-pop-up-background-color: green
+                      }
+                    icon: mdi:lightbulb-group
+                    button_type: slider
+                    slider_live_update: true
+              - type: custom:bubble-card
+                card_type: separator
+                name: Foyer
+                icon: mdi:door
+                styles: |-
+                  * {
+                  --bubble-line-background-color: yellow;
+                  }
+                  .bubble-icon {
+                    color: yellow;
+                  }
+              - type: horizontal-stack
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: slider
+                    entity: light.foyer_light_fixture
+                    name: Room
+                    icon: mdi:lightbulb-group
+                    tap_action:
+                      action: toggle
+                    hold_action:
+                      action: more-info
+                    slider_live_update: true
+                  - type: custom:bubble-card
+                    card_type: button
+                    entity: switch.light_switch_outside
+                    name: Outside
+                    icon: mdi:coach-lamp
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#vacuum2'
+                name: DJ Roomba
+                icon: mdi:robot-vacuum
+              - entity: sensor.vacuum
+                type: custom:roomba-vacuum-card
+              - type: entities
+                entities:
+                  - entities:
+                      - input_boolean.vacuum_clean_foyer
+                      - input_boolean.vacuum_clean_office
+                      - input_boolean.vacuum_clean_bathroom
+                      - entity: automation.vacuum_clean_rooms
+                        lock:
+                          enabled: |-
+                            [[[
+                              if ((states['group.vacuum_rooms'].state == "on") && (states['sensor.vacuum'].state == "docked"))
+                                return false;
+                              return true;
+                            ]]]
+                          exemptions: []
+                        name: Clean Rooms
+                        styles:
+                          card:
+                            - height: 50px
+                        tap_action:
+                          action: call-service
+                          service: automation.trigger
+                          service_data:
+                            entity_id: automation.vacuum_clean_rooms
+                        type: custom:button-card
+                    head:
+                      label: Selective Room Cleaning
+                      type: section
+                    type: custom:fold-entity-row
+                  - entities:
+                      - style: |-
+                          .text-divider {
+                            padding: 0em;
+                            margin: 0em;
+                          } h2 {
+                            font-size: 1em;
+                            margin-block-start: 0em;
+                            margin-block-end: 0em;
+                          }
+                        text: Clean
+                        type: custom:text-divider-row
+                      - color: '#40bf6a'
+                        due: true
+                        entity: sensor.vacuum_maint_clean_brushes
+                        locale: en-au
+                        severity:
+                          - color: '#bfb540'
+                            value: 0 days
+                          - color: '#bf4060'
+                            value: '-1 days'
+                        style: |
+                          ha-card {
+                            padding: 2px;
+                            --ha-card-box-shadow: 'none';
+                            --paper-card-background-color: rgba(0, 0, 0, 0);
+                          }
+                        timeout: 10 days
+                        title: Brushes
+                        type: custom:check-button-card
+                      - color: '#40bf6a'
+                        due: true
+                        entity: sensor.vacuum_maint_clean_contacts
+                        locale: en-au
+                        severity:
+                          - color: '#bfb540'
+                            value: 0 days
+                          - color: '#bf4060'
+                            value: '-3 days'
+                        style: |
+                          ha-card {
+                            padding: 2px;
+                            --ha-card-box-shadow: 'none';
+                            --paper-card-background-color: rgba(0, 0, 0, 0);
+                          }
+                        timeout: 18 days
+                        title: Contacts
+                        type: custom:check-button-card
+                      - color: '#40bf6a'
+                        due: true
+                        entity: sensor.vacuum_maint_clean_filter
+                        locale: en-au
+                        severity:
+                          - color: '#bfb540'
+                            value: 0 days
+                          - color: '#bf4060'
+                            value: '-10 days'
+                        style: |
+                          ha-card {
+                            padding: 2px;
+                            --ha-card-box-shadow: 'none';
+                            --paper-card-background-color: rgba(0, 0, 0, 0);
+                          }
+                        timeout: 10 days
+                        title: Filter
+                        type: custom:check-button-card
+                      - color: '#40bf6a'
+                        due: true
+                        entity: sensor.vacuum_maint_clean_wheel
+                        locale: en-au
+                        severity:
+                          - color: '#bfb540'
+                            value: 0 days
+                          - color: '#bf4060'
+                            value: '-3 days'
+                        style: |
+                          ha-card {
+                            padding: 2px;
+                            --ha-card-box-shadow: 'none';
+                            --paper-card-background-color: rgba(0, 0, 0, 0);
+                          }
+                        timeout: 18 days
+                        title: Wheel
+                        type: custom:check-button-card
+                      - color: '#40bf6a'
+                        due: true
+                        entity: sensor.vacuum_maint_clean_bin
+                        locale: en-au
+                        severity:
+                          - color: '#bfb540'
+                            value: 1 day
+                          - color: '#bf4060'
+                            value: '-2 days'
+                        style: |
+                          ha-card {
+                            padding: 2px;
+                            --ha-card-box-shadow: 'none';
+                            --paper-card-background-color: rgba(0, 0, 0, 0);
+                          }
+                        timeout: 3 weeks
+                        title: Bin
+                        type: custom:check-button-card
+                      - style: |-
+                          .text-divider {
+                            padding: 0em;
+                            margin: 0em;
+                          } h2 {
+                            font-size: 1em;
+                            margin-block-start: 0em;
+                            margin-block-end: 0em;
+                          }
+                        text: Replace
+                        type: custom:text-divider-row
+                      - color: '#40bf6a'
+                        due: true
+                        entity: sensor.vacuum_maint_replace_brushes
+                        locale: en-au
+                        severity:
+                          - color: '#bfb540'
+                            value: 0 months
+                          - color: '#bf4060'
+                            value: '-4 months'
+                        style: |
+                          ha-card {
+                            padding: 2px;
+                            --ha-card-box-shadow: 'none';
+                            --paper-card-background-color: rgba(0, 0, 0, 0);
+                          }
+                        timeout: 8 months
+                        title: Brushes
+                        type: custom:check-button-card
+                      - color: '#40bf6a'
+                        due: true
+                        entity: sensor.vacuum_maint_replace_filter
+                        locale: en-au
+                        severity:
+                          - color: '#bfb540'
+                            value: 0 months
+                          - color: '#bf4060'
+                            value: '-1 months'
+                        style: |
+                          ha-card {
+                            padding: 2px;
+                            --ha-card-box-shadow: 'none';
+                            --paper-card-background-color: rgba(0, 0, 0, 0);
+                          }
+                        timeout: 3 months
+                        title: Filter
+                        type: custom:check-button-card
+                      - color: '#40bf6a'
+                        due: true
+                        entity: sensor.vacuum_maint_replace_wheel
+                        locale: en-au
+                        severity:
+                          - color: '#bfb540'
+                            value: 0 months
+                          - color: '#bf4060'
+                            value: '-4 months'
+                        style: |
+                          ha-card {
+                            padding: 2px;
+                            --ha-card-box-shadow: 'none';
+                            --paper-card-background-color: rgba(0, 0, 0, 0);
+                          }
+                        timeout: 2 years
+                        title: Wheel
+                        type: custom:check-button-card
+                    head:
+                      label: Maintenance
+                      type: section
+                    type: custom:fold-entity-row
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#remote'
+                button_type: name
+                name: Remote
+                icon: mdi:remote-tv
+              - type: custom:bubble-card
+                card_type: media-player
+                entity: media_player.shield_android_tv
+                hide:
+                  volume_button: true
+                name: TV
+              - type: custom:bubble-card
+                card_type: media-player
+                button_type: slider
+                entity: media_player.denon_avr_s720w
+                name: Volume
+                icon: mdi:volume-source
+                show_attribute: true
+                attribute: volume_level
+                tap_action:
+                  action: more-info
+                  target:
+                    entity_id: media_player.denon_avr_s720w
+                  service: media_player.volume_mute
+                sub_button: []
+                hide:
+                  next_button: true
+                  previous_button: true
+                  power_button: true
+                  volume_button: false
+                  play_pause_button: true
+              - type: custom:bubble-card
+                card_type: separator
+                name: Shield
+                icon: mdi:android
+              - type: custom:android-tv-card
+                rows:
+                  - - home
+                    - menu
+                    - back
+                    - keyboard
+                  - - - volume_buttons
+                    - touchpad
+                    - - kodi
+                      - spotify
+                  - - chandelier_light_color
+                    - light_color
+                    - sunroom_light
+                    - search
+                remote_id: remote.shield_android_tv
+                custom_actions: []
+                keyboard_id: remote.shield_android_tv
+                media_player_id: media_player.denon_avr_s720w
+                custom_icons: []
+              - type: custom:bubble-card
+                card_type: separator
+                name: Kodi
+                icon: mdi:kodi
+              - type: custom:android-tv-card
+                rows:
+                  - - search
+                    - keyboard
+                  - navigation_buttons
+                  - - play
+                    - pause
+                platform: Kodi
+                custom_actions: []
+                remote_id: remote.shield_android_tv
+                keyboard_id: media_player.kodi
+                media_player_id: media_player.kodi
+    dense_section_placement: false
+    background:
+      opacity: 33
+      alignment: center
+      size: cover
+      repeat: repeat
+      attachment: fixed
+    theme: HaCasa
+  - type: sections
+    max_columns: 4
+    path: test
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: New section
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: menu
+                icon: mdi:menu
+              - type: spacer
+              - type: template
+                icon: mdi:home
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/0
+                icon_color: blue
+              - type: template
+                icon: mdi:lightbulb
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/lights
+              - type: template
+                icon: mdi:vacuum
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/home
+              - type: template
+                icon: mdi:shield
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/alarm
+              - type: spacer
+              - type: spacer
+            alignment: justify
+            card_mod:
+              style: |
+                ha-card { 
+                --chip-background: none; 
+                --chip-height: 50px
+                }
+                :host {
+                  z-index: 2;
+                  position: fixed;
+                  bottom: 0;
+                  background: #222222;
+                  padding: 5px;
+                  padding-bottom: 20px;
+                  margin: 0 !important;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  width: calc(100% - 30px);
+                  box-shadow: 0 0 11px #1d1f1f;
+                  icon_height: 30px
+                }
+          - square: false
+            type: grid
+            cards:
+              - type: custom:button-card
+                template: room_card
+                name: Living
+                icon: mdi:sofa
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/livingroom
+                entity: sensor.smart_sensor_living_room_temperature
+                custom_fields:
+                  btn:
+                    card:
+                      type: vertical-stack
+                      cards:
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.living_room
+                          icon: mdi:lightbulb
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.living_room_tv_lightstrip
+                          icon: mdi:television
+                styles:
+                  img_cell:
+                    - background: orange
+              - type: custom:button-card
+                template: room_card
+                name: Kitchen
+                icon: mdi:fridge
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/kitchen
+                entity: sensor.thermostat_current_temperature
+                custom_fields:
+                  btn:
+                    card:
+                      type: vertical-stack
+                      cards:
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.kitchen
+                          icon: mdi:lightbulb
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.living_room_ceiling_lights
+                          icon: mdi:light-recessed
+                styles:
+                  img_cell:
+                    - background: lightblue
+              - type: custom:button-card
+                template: room_card
+                name: Bedroom
+                icon: mdi:bed
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/bedroom
+                entity: sensor.smartsensor_temperature
+                custom_fields:
+                  btn:
+                    card:
+                      type: vertical-stack
+                      cards:
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.bedroom
+                          icon: mdi:lightbulb
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.master_bedroom_closet
+                          icon: mdi:tshirt-v
+                styles:
+                  img_cell:
+                    - background: green
+              - type: custom:button-card
+                template: room_card
+                name: Bathroom
+                icon: mdi:shower
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/bathroom
+                entity: sensor.smartsensor_temperature
+                custom_fields:
+                  btn:
+                    card:
+                      type: vertical-stack
+                      cards:
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.bathroom_upstairs
+                          icon: mdi:lightbulb
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.light_strip_bathroom
+                          icon: mdi:shower-head
+                styles:
+                  img_cell:
+                    - background: purple
+              - type: custom:button-card
+                template: room_card
+                name: Office
+                icon: mdi:monitor
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/office
+                entity: sensor.smart_sensor_office_temperature
+                custom_fields:
+                  btn:
+                    card:
+                      type: vertical-stack
+                      cards:
+                        - type: custom:button-card
+                          template: room_button
+                          entity: light.office_light_fixture
+                          icon: mdi:lightbulb
+                styles:
+                  img_cell:
+                    - background: red
+              - type: custom:button-card
+                template: room_card
+                name: Garage
+                icon: mdi:car
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace/garage
+                entity: sensor.r1t_battery_state_of_charge
+                custom_fields:
+                  btn:
+                    card:
+                      type: vertical-stack
+                      cards:
+                        - type: custom:button-card
+                          template: room_button
+                          entity: cover.door_1
+                          icon: mdi:garage
+                        - type: custom:button-card
+                          template: room_button
+                          entity: binary
+                          icon: mdi:fan
+                styles:
+                  img_cell:
+                    - background: grey
+            columns: 2
+      - type: grid
+        cards:
+          - type: heading
+            heading: New section
+          - type: custom:vertical-stack-in-card
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: ''
+                icon: mdi:sofa
+                sub_button:
+                  - entity: sensor.smart_sensor_living_room_temperature
+                    show_state: true
+                    show_icon: false
+                    state_background: false
+                    show_background: false
+                    show_last_changed: false
+                styles: |-
+                  * { 
+                  --bubble-line-background-color: white
+                  }
+                    .bubble-icon {
+                      color: orange !important;
+                    }
+                      .bubble-icon {
+                      --mdc-icon-size: 80px !important;
+                    }
+              - type: custom:bubble-card
+                card_type: button
+                entity: light.living_room
+                scrolling_effect: true
+                force_icon: false
+                show_icon: true
+                show_name: true
+                show_state: false
+                show_last_changed: false
+                show_attribute: false
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                columns: 1
+                styles: |-
+                  * {
+                  --bubble-border-radius: 5px
+                  }
+              - type: custom:bubble-card
+                card_type: button
+                entity: light.living_room_tv_lightstrip
+                name: TV Lightstrip
+                icon: mdi:television
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                styles: |-
+                  * {
+                  --bubble-border-radius: 5px
+                  }
+    title: test bed
+    subview: true
+    cards: []
+button_card_templates:
+  room_card:
+    show_state: true
+    styles:
+      grid:
+        - grid-template-areas: '"n btn" "s btn" "i btn"'
+        - grid-template-columns: 1fr min-content
+        - grid-template-rows: min-content min-content 1fr
+      card:
+        - padding: 15px 15px 15px 15px
+      custom_fields:
+        btn:
+          - justify-content: end
+          - align-self: start
+      name:
+        - justify-self: start
+        - align-self: start
+        - font-size: 19px
+        - font-weight: 600
+      state:
+        - min-height: 80px
+        - justify-self: start
+        - align-self: start
+        - font-size: 13px
+        - font-weight: 500
+        - color: rgba(96,114,116,0.7)
+      img_cell:
+        - justify-content: start
+        - position: absolute
+        - width: 100px
+        - height: 100px
+        - left: 0
+        - bottom: 0
+        - margin: 0 0 -20px -20px
+        - background: white
+        - border-radius: 500px
+        - opacity: '0.7'
+      icon:
+        - width: 60px
+        - color: white
+        - opacity: '0.9'
+  room_button_base:
+    show_name: false
+    tap_action:
+      action: toggle
+    hold_action:
+      action: more-info
+    styles:
+      card:
+        - padding: 3px
+        - width: 38px
+        - height: 31px
+        - border-radius: 99px
+      icon:
+        - color: rgb(111, 111, 111)
+        - width: 25px
+  room_button:
+    template: room_button_base
+    state:
+      - value: 'on'
+        styles:
+          icon:
+            - color: orange
+      - value: open
+        styles:
+          icon:
+            - color: orange
+  room_button_door:
+    template: room_button_base
+    tap_action:
+      action: more-info
+    state:
+      - value: 'on'
+        icon: mdi:door-open
+        styles:
+          icon:
+            - color: orange
+      - value: 'off'
+        icon: mdi:door-closed
+  room_button_fan:
+    template: room_button_base
+    icon: mdi:fan
+    state:
+      - value: 'on'
+        styles:
+          icon:
+            - color: orange
+            - animation: rotating 5s linear infinite
